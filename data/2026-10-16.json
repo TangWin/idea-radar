@@ -1,0 +1,285 @@
+{
+ "date": "2026-10-16",
+ "sample": "样本：主样本 148 条（HN 42 / Lobsters 12 / Reddit 48 / Indie Hackers 20 / Product Hunt 26），补充 Reddit 深翻页抱怨帖 87 条 + HN 句式评论 178 条，并抓了 9 个 Reddit 帖的 369 条评论和 3 个 HN 线程。未使用任何 X 付费 API。",
+ "ideas": [
+  {
+   "rank": 1,
+   "title": "AI 木工/DIY 家具设计：一句话或照片 → 参数化板件 + 下料单",
+   "problem": "业余木工靠手画 CAD，很慢；用文字给 AI 描述 3D 结构又说不清。现有工具单位、曲线、层数都有限制。Ask HN 帖 117 分、114 条评论。",
+   "target_users": "业余木工、家装 DIY、有 CNC 或 3D 打印机的创客。",
+   "quotes": [
+    {
+     "text": "\"I wonder in the time of LLMs if there is an effective way to accelerate the 3D model design using AI.. Anybody tried using AI to model wood projects?\" — Ask HN",
+     "links": [
+      {
+       "label": "Ask HN",
+       "url": "https://news.ycombinator.com/item?id=50067325"
+      }
+     ]
+    },
+    {
+     "text": "\"It seems it would be difficult to describe a 3d geometry correctly just with text. Do you provide hand-made sketches?\" — HN 评论",
+     "links": [
+      {
+       "label": "HN 评论",
+       "url": "https://news.ycombinator.com/item?id=50108166"
+      }
+     ]
+    },
+    {
+     "text": "\"I was looking for a tool exactly like this to DIY a bookshelf… none of the patterns had curved edges\" — HN 评论",
+     "links": [
+      {
+       "label": "HN 评论",
+       "url": "https://news.ycombinator.com/item?id=50098335"
+      }
+     ]
+    },
+    {
+     "text": "\"You need a metric default outside of the US. (2) >4 shelves does not work.\" — HN 评论",
+     "links": [
+      {
+       "label": "HN 评论",
+       "url": "https://news.ycombinator.com/item?id=50097453"
+      }
+     ]
+    },
+    {
+     "text": "\"I have gotten just \"ok\" at CAD. I'm not as productive as I should be because I avoid it.\" — HN 评论",
+     "links": [
+      {
+       "label": "HN 评论",
+       "url": "https://news.ycombinator.com/item?id=50097871"
+      }
+     ]
+    }
+   ],
+   "existing": "ShopSpec、FluidCAD、sawdust.diy、claydash、Fusion 360 + Claude MCP、FreeCAD MCP、OpenSCAD + Claude、CutList Optimizer。",
+   "defects": "通用 CAD + MCP 要会写提示词、会 CAD；垂直工具只能套模板（层数、曲线有限），默认英制；不支持\"拍张照或画个草图\"；板材实际厚度、榫卯公差要自己算。",
+   "solution": "用照片、草图或一句话生成参数化家具模型，按真实板厚自动出板件、接合方式、下料排版、五金清单和装配步骤；每个尺寸都能对话修改。",
+   "mvp": "网页版，先做柜子、书架、桌子 3 类；草图/照片识别 + 参数化引擎 + 下料优化，导出 PDF 图纸和 STL/DXF；公制和英制切换。",
+   "difficulty": 3,
+   "potential": 3,
+   "tags": [
+    "消费者"
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "Mac 夜间唤醒跑本地 AI Agent 任务",
+   "problem": "用户想让 Claude Code 等本地 Agent 夜里跑批，不占白天的 5 小时额度，或者避开电价高峰；但 Mac 合盖、用电池时会马上睡回去，launchd、pmset 配置又难。",
+   "target_users": "用 Claude Code、Codex、本地模型的 Mac 开发者和重度用户。",
+   "quotes": [
+    {
+     "text": "\"I want claude to run scheduled tasks late at night when it doesnt eat into my 5 hour usage allowance… I'd really like to be able to close my mac and forget about it\" — r/ClaudeAI",
+     "links": [
+      {
+       "label": "r/ClaudeAI",
+       "url": "https://www.reddit.com/r/ClaudeAI/comments/1x6iol8/"
+      }
+     ]
+    },
+    {
+     "text": "\"Lid closed on battery is what killed my overnight jobs… One started and the Mac was back asleep 5 seconds later.\" — 评论",
+     "links": [
+      {
+       "label": "评论",
+       "url": "https://www.reddit.com/r/ClaudeAI/comments/1x6iol8/comment/pgxm656/"
+      }
+     ]
+    },
+    {
+     "text": "\"I wish there was something equivalent for my Mac (launchd files just don't cut it).\" — HN",
+     "links": [
+      {
+       "label": "HN",
+       "url": "https://news.ycombinator.com/item?id=50110933"
+      }
+     ]
+    },
+    {
+     "text": "\"An agentic run that spans these different pricing points or at least chooses to avoid peak times can come out overall cheaper.\" — r/LocalLLaMA",
+     "links": [
+      {
+       "label": "r/LocalLLaMA",
+       "url": "https://www.reddit.com/r/LocalLLaMA/comments/1x5blg4/"
+      }
+     ]
+    }
+   ],
+   "existing": "launchd + pmset + caffeinate、LaunchControl、Lingon、Amphetamine、Keyboard Maestro、Claude 云端定时任务（碰不到本地文件）。",
+   "defects": "全是通用定时器，不懂合盖、电池、DarkWake 这些坑；不知道额度什么时候重置、电价什么时候低；跑完没有汇总；失败不重试。",
+   "solution": "菜单栏 App 管理 Agent 任务：按额度重置时间、低谷电价或固定时间触发；自动安排唤醒、跑任务时阻止睡眠；先检查有没有插电、合盖状态并提醒；早上给一份结果和花费日报。",
+   "mvp": "支持 `claude -p`、`codex exec` 和任意脚本；可视化排程 + pmset 唤醒 + 运行日志 + 早报通知；买断制。",
+   "difficulty": 2,
+   "potential": 3,
+   "tags": [
+    "Agent/AI编码",
+    "Mac/桌面工具",
+    "开发者工具"
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "家庭照片搬离 iCloud：家人可接手的本地相册 + 互相异地备份",
+   "problem": "iCloud 家庭空间超了，越来越贵；自建 NAS 或 Immich 又怕家人不会管（\"我不在了怎么办\"），异地备份还要再订一个服务。r/MacOS 帖 80 条评论。",
+   "target_users": "有一定技术能力的家庭\"IT 负责人\"，以及有大量孩子照片的家庭。",
+   "quotes": [
+    {
+     "text": "\"it's not always easy for my family members to take over managing the system should I pass away.\" — r/MacOS",
+     "links": [
+      {
+       "label": "r/MacOS",
+       "url": "https://www.reddit.com/r/MacOS/comments/1x5ryas/"
+      }
+     ]
+    },
+    {
+     "text": "\"The only problem with local hosting is that you still need an offsite back up and that involves another subscription.\" — 评论",
+     "links": [
+      {
+       "label": "评论",
+       "url": "https://www.reddit.com/r/MacOS/comments/1x5ryas/comment/pgoytin/"
+      }
+     ]
+    },
+    {
+     "text": "\"My nightly NAS backups go to an external drive at my dad's house, and his backups come to my place.\" — 评论",
+     "links": [
+      {
+       "label": "评论",
+       "url": "https://www.reddit.com/r/MacOS/comments/1x5ryas/comment/pgp4ls5/"
+      }
+     ]
+    },
+    {
+     "text": "\"The part that usually breaks in a real WAN-down test is names and certificates, not the apps.\" — r/selfhosted",
+     "links": [
+      {
+       "label": "r/selfhosted",
+       "url": "https://www.reddit.com/r/selfhosted/comments/1x3eq85/comment/pffnyol/"
+      }
+     ]
+    }
+   ],
+   "existing": "Immich、Synology Photos、Ente、iCloud、Google Photos、Backblaze。",
+   "defects": "自建要会 Docker、DNS、证书；没有\"交接说明\"和继承设计；异地备份另付费；连拍和重复照片越堆越多。",
+   "solution": "开箱即用的家庭相册方案：一键部署 Immich 类服务，和亲友家设备配对做加密互备，不另收订阅；自动生成家人能看懂的交接手册和紧急访问方式；AI 清理连拍和重复照片。",
+   "mvp": "Mac mini 或 NAS 上的安装器 + iPhone 自动上传 + 两户互备配对 + 重复照片清理 + 交接 PDF。",
+   "difficulty": 3,
+   "potential": 3,
+   "tags": [
+    "消费者",
+    "Mac/桌面工具",
+    "开发者工具"
+   ]
+  },
+  {
+   "rank": 4,
+   "title": "外语可懂输入匹配：按水平给剧集打分 + 喜欢的剧预习简化",
+   "problem": "A2 学习者看自己水平的内容很无聊，看喜欢的剧又听不懂，只能反复看动画片的配音版。",
+   "target_users": "A2–B1 的英语和其他语言学习者，走\"看剧学语言\"路线的人。",
+   "quotes": [
+    {
+     "text": "\"Watch shows at my listening level (About A2) that I may not enjoy… Shows that I love but may be way too advanced for me\" — r/languagelearning",
+     "links": [
+      {
+       "label": "r/languagelearning",
+       "url": "https://www.reddit.com/r/languagelearning/comments/1x6b53z/"
+      }
+     ]
+    },
+    {
+     "text": "\"I'm starting to get burnt out of watching simple things, and that's starting to affect my enjoyment of studying the language\" — 评论",
+     "links": [
+      {
+       "label": "评论",
+       "url": "https://www.reddit.com/r/languagelearning/comments/1x6b53z/comment/pgwm94l/"
+      }
+     ]
+    },
+    {
+     "text": "\"Honestly, you won't find many 'shows' that are at an A2 level.\" — 评论",
+     "links": [
+      {
+       "label": "评论",
+       "url": "https://www.reddit.com/r/languagelearning/comments/1x6b53z/comment/pgwfhlj/"
+      }
+     ]
+    },
+    {
+     "text": "\"Is there a way to, say, hold your phone up while watching and have ChatGPT provide subtitles on the fly?\" — r/ChatGPT",
+     "links": [
+      {
+       "label": "r/ChatGPT",
+       "url": "https://www.reddit.com/r/ChatGPT/comments/1x57p2u/"
+      }
+     ]
+    }
+   ],
+   "existing": "Language Reactor、Lingopie、LingQ、Migaku、Dreaming Spanish 类分级视频站。",
+   "defects": "分级内容少、题材窄；字幕工具不告诉你\"这集你能懂多少\"；不会围绕你喜欢的剧做预习。",
+   "solution": "根据你的词汇量估算每集、每个视频的可懂度并排序；对喜欢但偏难的剧，看前自动生成预习词和简化版剧情，看时只解释你不认识的词，看完把生词放进复习。",
+   "mvp": "浏览器插件（YouTube、Netflix 字幕）+ 词汇量测试 + 可懂度分数 + 每集预习卡；先做英语。",
+   "difficulty": 2,
+   "potential": 3,
+   "tags": [
+    "语言学习"
+   ]
+  },
+  {
+   "rank": 5,
+   "title": "iPhone 一键改错字键盘",
+   "problem": "iOS 点一个词时光标只会跳到词尾，想改词中间的错字必须长按空格拖动，还常\"弹回末尾\"；iOS 27 后错字更多。r/iphone 帖 1296 赞、296 条评论。",
+   "target_users": "打字快、经常要改错字的 iPhone 用户，以及从 Android 换过来的人。",
+   "quotes": [
+    {
+     "text": "\"I'd like to go to specific parts of the word to do so, but I HAVE to hold down on the word to do it\" — r/iphone",
+     "links": [
+      {
+       "label": "r/iphone",
+       "url": "https://www.reddit.com/r/iphone/comments/1x42ap8/"
+      }
+     ]
+    },
+    {
+     "text": "\"There's no fix. Your only way is to hold the space bar and scroll. I still don't know why Apple doesn't let users tap anywhere to place the cursor\" — 评论",
+     "links": [
+      {
+       "label": "评论",
+       "url": "https://www.reddit.com/r/iphone/comments/1x42ap8/comment/pgh7me3/"
+      }
+     ]
+    },
+    {
+     "text": "\"Sometimes you're tapping trying to drag and it just keeps snapping to the end. Drives me nuts.\" — 评论",
+     "links": [
+      {
+       "label": "评论",
+       "url": "https://www.reddit.com/r/iphone/comments/1x42ap8/comment/pgg8j0i/"
+      }
+     ]
+    },
+    {
+     "text": "\"I would really like a permanent number row\" — 评论",
+     "links": [
+      {
+       "label": "评论",
+       "url": "https://www.reddit.com/r/iphone/comments/1x42ap8/comment/pgf5yuz/"
+      }
+     ]
+    }
+   ],
+   "existing": "系统键盘的空格触控板、Gboard、SwiftKey、各类第三方键盘。",
+   "defects": "第三方键盘没法改变\"点文字放光标\"的系统行为；都没有\"直接列出可能的错字、点一下就改\"的功能。",
+   "solution": "第三方键盘上方一行列出最近输入里疑似的错字，点一下就跳过去并给出替换候选；加上字符级左右键、常驻数字行；判断错字用端侧模型，不上传。",
+   "mvp": "iOS 键盘扩展，含错字条、字符级移动键、数字行，免费 + 一次性解锁。",
+   "difficulty": 3,
+   "potential": 2,
+   "tags": [
+    "消费者",
+    "安全"
+   ]
+  }
+ ]
+}

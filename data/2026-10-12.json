@@ -1,0 +1,254 @@
+{
+ "date": "2026-10-12",
+ "sample": "样本 143 条（HN42 Lobsters8 Reddit48 IH19 PH26）| 日期 2026-10-12 | 未用 X 付费 API",
+ "ideas": [
+  {
+   "rank": 1,
+   "title": "共享物资「快没了」一键进采购清单：零注册、货架旁扫码，别再靠上楼巡检",
+   "target_users": "小型托儿所/养老日托/办公室行政等共享库存场景；负责采购但没法让每位同事装 App 开账号的人；受够购物回来才发现缺纸/手套的值班者",
+   "quotes": [
+    {
+     "text": "Our supplies (paper towels, gloves, food, etc.) are kept upstairs, and most staff don't go up to check before someone does the shopping. So after every shopping trip we find out something is missing, and someone has to go out again.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.reddit.com/r/SomebodyMakeThis/comments/1x37veq/somebody_make_a_onetap_were_running_low_button/"
+      }
+     ]
+    },
+    {
+     "text": "What I wish existed: when you take the last few of something, you tap one button on your phone, and it goes on the shopper's list. No sign-up for staff, just scan a QR code once.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.reddit.com/r/SomebodyMakeThis/comments/1x37veq/somebody_make_a_onetap_were_running_low_button/"
+      }
+     ]
+    },
+    {
+     "text": "At work, though, I'm not sure I could get every staff member to install an app and make an account — that's kind of the participation problem others mentioned.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.reddit.com/r/SomebodyMakeThis/comments/1x37veq/somebody_make_a_onetap_were_running_low_button/"
+      }
+     ]
+    },
+    {
+     "text": "Getting people to participate is by far the hardest part.… Amazon did something like this with Dash, but it never caught on",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.reddit.com/r/SomebodyMakeThis/comments/1x37veq/somebody_make_a_onetap_were_running_low_button/"
+      }
+     ]
+    }
+   ],
+   "existing": "AnyList/家庭购物清单, Slack/LINE 群聊随手说, 白板, Amazon Dash(已停), NFC 自建自动化, 自动售货柜",
+   "defects": "家庭清单要每人装 App 开账号，职场参与率崩；群聊噪声无结构化；Dash 绑定下单而非共享采购清单；自建 NFC 对非技术团队过重",
+   "solution": "ShelfTap List——货架贴 QR/NFC；无账号一键「快没了」写入指定采购员清单；周报参与率；不自动下单",
+   "mvp": "静态落地页生成每品一项 QR → 写入共享 Google Sheet/清单；两周试点计次；小店 $9/月或买断贴纸包",
+   "difficulty": 2,
+   "potential": 4,
+   "tags": [
+    "电商",
+    "增长/转化",
+    "运营/客服"
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "Shopify 目录 CSV 导入前体检：Handle/Excel 科学计数/空白清空，别等上线才炸",
+   "target_users": "反复用 CSV 改价改目录的单店主与代运营；怕 Excel 打开再存把条码变科学计数的人；不想把定价文件上传到第三方的人",
+   "quotes": [
+    {
+     "text": "I'm building Catalog Preflight, a small tool for one specific job: comparing a current Shopify product export with the CSV you plan to import.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/show-ih-i-built-a-free-browser-check-for-shopify-csv-updates-before-import-d73a7a6245"
+      }
+     ]
+    },
+    {
+     "text": "The part I'd check first is how rows get matched, because a changed Handle would show up as one removal and one addition unless the tool pairs them up by Variant SKU or another stable key. It would also help to see whether a blank cell is flagged as a clear",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/show-ih-i-built-a-free-browser-check-for-shopify-csv-updates-before-import-d73a7a6245"
+      }
+     ]
+    },
+    {
+     "text": "One check I'd add: values that Excel quietly changes when someone opens and re-saves the CSV, like barcodes or SKUs losing their leading zeros, or long numbers turning into 1.23E+12. That's one of the most common ways a \"small\" catalog update goes wrong",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/show-ih-i-built-a-free-browser-check-for-shopify-csv-updates-before-import-d73a7a6245"
+      }
+     ]
+    },
+    {
+     "text": "a renamed handle on import can quietly create a duplicate product or orphan its variants, and that often hurts more than a price slip.… blocking mode (\"don't import if X changes\")",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/show-ih-i-built-a-free-browser-check-for-shopify-csv-updates-before-import-d73a7a6245"
+      }
+     ]
+    }
+   ],
+   "existing": "Shopify 原生导入预览, Matrixify, Excel 肉眼 diff, 自写脚本, 先导 staging 店",
+   "defects": "原生预览弱于 Handle/空白语义；Matrixify 重且偏全量；肉眼抓不住科学计数；上传云端碰定价敏感数据",
+   "solution": "Catalog Diff Gate——浏览器本地 diff 导出 vs 待导入；稳定键匹配；Excel 变异检测；空白=清空警告；可选阻断规则",
+   "mvp": "纯前端 Web Worker：两份 CSV → 变更分型计数+可疑行；$49 买断报告历史（已有付费信号）",
+   "difficulty": 3,
+   "potential": 5,
+   "tags": [
+    "电商",
+    "支付/计费",
+    "运营/客服"
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "市集搜索是字面匹配：少一个词整页隐形，先做资格审计再堆 SEO",
+   "target_users": "Gumroad/Etsy/Notion 模板等字面搜索市集上的卖家；已有销量和评分却仍被相邻词搜不到的人；想卖「缺词体检」而非玄学 SEO 的独立开发者",
+   "quotes": [
+    {
+     "text": "Gumroad's marketplace search is literal. Every word a buyer types has to appear in your title, description, tags or creator name, and nothing gets stemmed (\"template\" doesn't match \"templates\").",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/i-checked-40-top-gumroad-listings-against-the-searches-next-to-theirs-most-of-the-gaps-are-one-missing-word-ac56184dc1"
+      }
+     ]
+    },
+    {
+     "text": "The notion planner example is the killer one for me — the #1 notion template listing with 200 ratings, invisible for a 6,827-result adjacent search just because it never says \"planner\".",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/i-checked-40-top-gumroad-listings-against-the-searches-next-to-theirs-most-of-the-gaps-are-one-missing-word-ac56184dc1"
+      }
+     ]
+    },
+    {
+     "text": "I'd call about 20 of the 200 pairs clear misses, so roughly 1 in 10, spread across about a third of the 40 listings.… around a third of the top sellers in these niches are invisible for at least one search their buyers plainly type.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/i-checked-40-top-gumroad-listings-against-the-searches-next-to-theirs-most-of-the-gaps-are-one-missing-word-ac56184dc1"
+      }
+     ]
+    },
+    {
+     "text": "Matching is a yes/no gate, and once you're in, the default sort is the fee Gumroad earned from the product over the last 3 months.… more words won't move them.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/i-checked-40-top-gumroad-listings-against-the-searches-next-to-theirs-most-of-the-gaps-are-one-missing-word-ac56184dc1"
+      }
+     ]
+    }
+   ],
+   "existing": "通用 SEO 插件, 手工改标题, Gumroad Discover, 卖家自测搜索",
+   "defects": "通用 SEO 不懂市集字面门闸；Discover 偏销量排序；自测漏相邻词；缺「匹配 vs 排名」两段诊断",
+   "solution": "Literal Match Auditor——输入 listing → 对照买家相邻搜索 → 标缺词/已匹配但掉队；一键补句建议；监测修复前后曝光",
+   "mvp": "Gumroad 免费资格检查器（作者已验证）→ 付费监控包：每周重跑缺词；按 listing 数定价",
+   "difficulty": 2,
+   "potential": 4,
+   "tags": [
+    "增长/转化",
+    "开发者工具",
+    "支付/计费"
+   ]
+  },
+  {
+   "rank": 4,
+   "title": "创作工具别再卡「请提供分层 PSD」：平坦图自动切层，解开首跑",
+   "target_users": "要 PNG/JPG 角色能动起来的 Spine/动效新手；只有买来/约稿/生成的单图、没有分层文件的创作者；被教程劝退「先做 PSD」的那批隐形用户",
+   "quotes": [
+    {
+     "text": "Until this week it had one hard requirement: a layered PSD, one layer per moving part. That requirement turned people away. Most people who came had one picture of their character, bought, commissioned or generated, and no layered file.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/the-1-thing-blocking-new-users-was-you-need-a-layered-psd-so-we-built-a-picture-cutter-8ffe6bef1f"
+      }
+     ]
+    },
+    {
+     "text": "Nobody wants a layered PSD, they want a character that moves.… Our old tutorials literally told people to come back with a PSD, so we probably never saw most of them.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/the-1-thing-blocking-new-users-was-you-need-a-layered-psd-so-we-built-a-picture-cutter-8ffe6bef1f"
+      }
+     ]
+    },
+    {
+     "text": "I'd build the converter whenever the format is just a step and not the thing people came for.… Building the converter was the right call here, because the people with one flat PNG … are a bigger group than people who own layered PSDs",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/the-1-thing-blocking-new-users-was-you-need-a-layered-psd-so-we-built-a-picture-cutter-8ffe6bef1f"
+      }
+     ]
+    }
+   ],
+   "existing": "Photoshop 手切层, Remove.bg/抠图工具, 各家「先准备好素材」教程墙, Spine 官方工作流",
+   "defects": "手切劝退新手；通用抠图不懂「可动部件」；教程把用户挡在门外导致漏斗样本偏差",
+   "solution": "Input-Unblocker Cut——上传平坦图 → 计划预览（可改框）→ 切层；好/坏样例放在上传区上方；计次收费",
+   "mvp": "Web：PNG→部件建议框→确认切割→导出；单次 <$1（作者已验证成本）；嵌入任意需分层输入的创作 SaaS",
+   "difficulty": 3,
+   "potential": 4,
+   "tags": [
+    "其他"
+   ]
+  },
+  {
+   "rank": 5,
+   "title": "分析别再炫 PV：一眼只看「钱从哪来」的收入向 Web Analytics",
+   "target_users": "独立 SaaS/内容站主；看腻 GA/轻量分析的虚荣 PV、想把时间花在能涨收入路径上的人；侧项目收尾困难、靠 AI 补齐最后 20% 打磨的建造者",
+   "quotes": [
+    {
+     "text": "I was frustrated with Google Analytics and Plausible, and I wanted something simple that highlighted actionable things I could focus on to improve revenue. Less focus on vanity metrics like pageviews, instead just showing where revenue comes from.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://news.ycombinator.com/item?id=49957425"
+      }
+     ]
+    },
+    {
+     "text": "That tells you what's the most profitable and best use of your time, at a glance. So I built the tool I wanted.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://news.ycombinator.com/item?id=49957425"
+      }
+     ]
+    },
+    {
+     "text": "I've always struggled to finish side projects and do the last 20% of polish (which takes 80% of the time somehow). … I credit AI with making it easier",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://news.ycombinator.com/item?id=49957425"
+      }
+     ]
+    }
+   ],
+   "existing": "GA4, Plausible/Fathom/Simple Analytics, Stripe Dashboard, Baremetrics/ChartMogul, 自建事件",
+   "defects": "流量工具停在 PV/来源；收入工具停在 MRR 不接页面路径；中间缺「哪条 URL/活动真正赚钱」一屏",
+   "solution": "Revenue Path Analytics——事件+支付归因到落地路径；默认看板只有收入贡献与建议动作；无虚荣指标模式",
+   "mvp": "一行脚本+Stripe webhook →「收入来源 Top 路径」日报；indie $19/月",
+   "difficulty": 3,
+   "potential": 4,
+   "tags": [
+    "支付/计费"
+   ]
+  }
+ ]
+}

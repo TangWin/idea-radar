@@ -1,0 +1,171 @@
+{
+ "date": "2026-10-10",
+ "sample": "样本 145 条（HN42 Lobsters9 Reddit48 IH20 PH26）| 日期 2026-10-10 | 未用 X 付费 API",
+ "ideas": [
+  {
+   "rank": 1,
+   "title": "Coding Agent × 密钥：拒绝「点 15 次手表批准」，要会话级秘密注入",
+   "target_users": "坚持磁盘不落密钥 / GitOps / 1Password CLI，却被 coding agent 反复打断批准的开发者",
+   "quotes": [
+    {
+     "text": "Please write the 1Password creds to .env and use .env instead because I'm tired of clicking approve on my watch 15 times for every test run.",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://news.ycombinator.com/item?id=50024528"
+      }
+     ]
+    }
+   ],
+   "existing": "1Password CLI/op run, Vault, Doppler/Infisical, direnv, secret MCP",
+   "defects": "每次 op read 都要手表批准；agent 循环放大成本；开发者被迫写 .env 破坏安全模型",
+   "solution": "Agent Secret Proxy：会话 TTL + 命令白名单注入，审计不写盘",
+   "mvp": "CLI agent-secrets start --ttl 45m --allow 'pytest*,curl ...'",
+   "difficulty": 3,
+   "potential": 5,
+   "tags": [
+    "Agent/AI编码",
+    "开发者工具"
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "Stripe 静默漏收：只听 subscription.deleted 会把 past_due/unpaid 当成还在付",
+   "target_users": "Stripe 订阅 SaaS indie/小团队，webhook 只接了 completed+deleted 的人",
+   "quotes": [
+    {
+     "text": "Only the first option ever sends customer.subscription.deleted. With the other two, the subscription sits there and your app never hears anything",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/revoking-access-only-on-customer-subscription-deleted-and-15-other-quiet-stripe-leaks-740fc48e5c"
+      }
+     ]
+    },
+    {
+     "text": "Stripe pays you net, but your books need gross. One payout mixes dozens of charges, fees, refunds",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/i-built-a-stripe-app-as-a-student-22-days-on-the-marketplace-0-installs-heres-what-i-found-550206524d"
+      }
+     ]
+    }
+   ],
+   "existing": "Stripe Billing, Baremetrics/ChartMogul, dunning tools, Stripe Leak Check",
+   "defects": "教程默认 deleted=停权；payment_failed 过纠；webhook 乱序",
+   "solution": "以 subscription.status 驱动权限 + 只读 key 审计风险金额",
+   "mvp": "CLI stripe-access-audit 输出仍有权未付清单",
+   "difficulty": 2,
+   "potential": 5,
+   "tags": [
+    "支付/计费",
+    "开发者工具"
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "想法交接丢「为什么」：票上只剩一行，船出来却偏了",
+   "target_users": "solo 对未来自己交接、小团队口头拍板写 ticket、Agent 一小时开干的 maker",
+   "quotes": [
+    {
+     "text": "By the time a first version exists, the builder is working from that one line. The why is gone, so what ships is technically right and still misses the point",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/most-of-an-idea-gets-lost-in-the-handoff-not-the-build-b87ad84e1c"
+      }
+     ]
+    },
+    {
+     "text": "don't log the decision, log the trigger… the actual example or complaint that made it obvious",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/most-of-an-idea-gets-lost-in-the-handoff-not-the-build-b87ad84e1c"
+      }
+     ]
+    }
+   ],
+   "existing": "Linear/Jira, Notion 决策日志, PRD 模板, AGENTS.md",
+   "defects": "字段鼓励做什么而非触发例证；Agent 从短标题开写放大丢 why",
+   "solution": "Trigger-linked Idea Brief，票只链 canonical，注入 Agent 前言",
+   "mvp": "选中对话一键建 brief → Linear/GitHub 链接字段",
+   "difficulty": 2,
+   "potential": 4,
+   "tags": [
+    "Agent/AI编码",
+    "开发者工具"
+   ]
+  },
+  {
+   "rank": 4,
+   "title": "Scary First Action：钱/财务文件这一步，分析只显示 drop-off",
+   "target_users": "卡在上传 payout/绑卡/接账户的 indie SaaS 与卖家工具作者",
+   "quotes": [
+    {
+     "text": "people get through every easy step, then stop exactly at the step that touches money or account access",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/a-month-in-30-visitors-a-day-2-uploads-a-week-0-customers-7987619814"
+      }
+     ]
+    },
+    {
+     "text": "stopped at the payout setup step. Analytics would have shown drop-off, but only asking told me why: the money step felt like a bigger commitment than the sign-up promised",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.indiehackers.com/post/people-visit-my-product-but-few-sign-up-how-did-you-find-the-bottleneck-2e712f3435"
+      }
+     ]
+    }
+   ],
+   "existing": "PostHog 漏斗, Appcues, trust badge, 本地桌面工具",
+   "defects": "漏斗不区分财务承诺；无法解决文件离设备恐惧",
+   "solution": "Trust-before-Ask：打码样例先于要权；本地/扩展预览",
+   "mvp": "样例报告块 + 事件字典 + 可选 Shopify 扩展脚手架",
+   "difficulty": 2,
+   "potential": 4,
+   "tags": [
+    "电商"
+   ]
+  },
+  {
+   "rank": 5,
+   "title": "中小学课表 Live Activity：锁屏一眼看还剩几分钟，别用会响的闹钟",
+   "target_users": "实习/新教师与中小学老师，需要无声锁屏倒计时催收拾",
+   "quotes": [
+    {
+     "text": "not knowing how long a class is left because I dont know when to call clean up… live activity on an iphones lock screen… alarm app… loud sound and it can be very distracting",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.reddit.com/r/SomebodyMakeThis/comments/1x0om2l/time_tracker_for_teachers/"
+      }
+     ]
+    },
+    {
+     "text": "a bell schedule with a countdown live activity… i built a tiny one for my wife's middle school",
+     "links": [
+      {
+       "label": "来源",
+       "url": "https://www.reddit.com/r/SomebodyMakeThis/comments/1x0om2l/time_tracker_for_teachers/"
+      }
+     ]
+    }
+   ],
+   "existing": "iOS 闹钟, Calendar Live Activity 类, 学校铃表",
+   "defects": "闹钟扰课；通用日历不懂收拾节点；课表导入麻烦",
+   "solution": "Bell Schedule Live Activity + 学期模板",
+   "mvp": "iOS 录入课表 → Live Activity；$4.99 买断试水",
+   "difficulty": 2,
+   "potential": 3,
+   "tags": [
+    "安全",
+    "运营/客服"
+   ]
+  }
+ ]
+}

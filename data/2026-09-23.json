@@ -1,0 +1,240 @@
+{
+ "date": "2026-09-23",
+ "sample": "样本 153 条（HN42 Lobsters15 Reddit51 IH19 PH26）| 日期 2026-09-23 | 未用 X 付费 API",
+ "ideas": [
+  {
+   "rank": 1,
+   "title": "多 Agent 流水线：事实「看见了」却因分类缝被静默丢掉",
+   "problem": "Multi-agent 流水线用总分掩盖系统性漏抽；相对竞争优势等无命名事实在 ingest 节点因 schema 分类缝被静默丢弃，从未进入记忆/下游。",
+   "target_users": "搭建 multi-agent 报告/策略/编码流水线的 indie 与小团队；依赖汇总通过率做决策的人",
+   "quotes": [
+    {
+     "text": "My AI agent could \"see\" the fact — it just never wrote it down",
+     "links": [
+      {
+       "label": "indiehackers",
+       "url": "https://www.indiehackers.com/post/my-ai-agent-could-see-the-fact-it-just-never-wrote-it-down-13d2b7a434"
+      }
+     ]
+    },
+    {
+     "text": "It wasn't dropped after being noticed — it was never flagged as recording-worthy to begin with",
+     "links": [
+      {
+       "label": "indiehackers",
+       "url": "https://www.indiehackers.com/post/my-ai-agent-could-see-the-fact-it-just-never-wrote-it-down-13d2b7a434"
+      }
+     ]
+    },
+    {
+     "text": "Shared memory for coding agents",
+     "links": [
+      {
+       "label": "producthunt",
+       "url": "https://www.producthunt.com/products/resumecontext"
+      }
+     ]
+    },
+    {
+     "text": "Local memory for AI agents to reuse work, spend fewer tokens",
+     "links": [
+      {
+       "label": "producthunt",
+       "url": "https://www.producthunt.com/products/eggshell-2"
+      }
+     ]
+    }
+   ],
+   "existing": "LangSmith/Langfuse、Mem0/Zep、向量 RAG、ResumeContext/Eggshell/Valori、自建 checklist",
+   "defects": "缺按节点 must-survive facts 的 coverage contract；schema 静默丢未分类事实；下游硬编码类别列表",
+   "solution": "Agent Coverage 层：声明必保事实+来源 span，每节点断言存活，未分类桶可见，coverage/fidelity 与总分分离",
+   "mvp": "CLI/SDK：canonical case 上 5–10 条必保事实 → 跑 pipeline intermediate JSON → 报告首次丢失节点",
+   "difficulty": 3,
+   "potential": 5,
+   "tags": [
+    "Agent/AI编码",
+    "开发者工具"
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "早期产品 Day-2 / 首次→二次动作崩溃：激活度量比拉新更急",
+   "problem": "10–30 人早期队列 Day-2 几乎不回访；事件未埋点导致无法复盘；把激活问题误当成再拉新。",
+   "target_users": "刚有少量真实用户的消费/双边产品创始人",
+   "quotes": [
+    {
+     "text": "First cohort was 10 testers. Almost nobody opened it again the next day.",
+     "links": [
+      {
+       "label": "indiehackers",
+       "url": "https://www.indiehackers.com/post/10-testers-almost-nobody-came-back-on-day-2-fix-activation-first-or-get-more-testers-first-f43e209684"
+      }
+     ]
+    },
+    {
+     "text": "We ran the whole cohort without day 1 and day 7 events wired… That data I cannot get back.",
+     "links": [
+      {
+       "label": "indiehackers",
+       "url": "https://www.indiehackers.com/post/10-testers-almost-nobody-came-back-on-day-2-fix-activation-first-or-get-more-testers-first-f43e209684"
+      }
+     ]
+    },
+    {
+     "text": "looking more closely at the first → second opportunity transition instead of treating retention as one big number",
+     "links": [
+      {
+       "label": "indiehackers",
+       "url": "https://www.indiehackers.com/post/22-users-i-m-testing-what-happens-after-the-first-opportunity-7f39d59332"
+      }
+     ]
+    }
+   ],
+   "existing": "Amplitude/Mixpanel/PostHog、onboarding checklist SaaS、访谈工具",
+   "defects": "小样本百分比误导；Day-2 可能不符品类节奏；缺「首个可证明价值事件」模板与测前埋点纪律",
+   "solution": "Early-cohort 激活 OS：价值事件命名+3 步漏斗+测前埋点+沉默退出访谈拆分",
+   "mvp": "Web：一句话价值主张 → 事件命名/埋点伪代码+10 条访谈问题",
+   "difficulty": 2,
+   "potential": 4,
+   "tags": [
+    "开发者工具"
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "为几乎不用的 SaaS 功能买单 + 想法散落五套系统",
+   "problem": "小团队为多家 SaaS 全家桶付费却只用一角；灵感散落便签/截图/标签页；书签遇 link rot 失效。",
+   "target_users": "多 SaaS 订阅的小团队与自由职业者；研究员/顾问",
+   "quotes": [
+    {
+     "text": "Small teams often end up with several tools, while only using a small part of each one. And the one function they actually want can still be missing.",
+     "links": [
+      {
+       "label": "indiehackers",
+       "url": "https://www.indiehackers.com/post/are-you-paying-for-saas-features-you-barely-use-b0e2e00d23"
+      }
+     ]
+    },
+    {
+     "text": "This happens to me constantly — I keep tools around for one feature I used once.",
+     "links": [
+      {
+       "label": "indiehackers",
+       "url": "https://www.indiehackers.com/post/are-you-paying-for-saas-features-you-barely-use-b0e2e00d23"
+      }
+     ]
+    },
+    {
+     "text": "Every idea I have ends up scattered somewhere different — a sticky note, a screenshot, a \"read later\" tab I'll never open again.",
+     "links": [
+      {
+       "label": "reddit",
+       "url": "https://www.reddit.com/r/SideProject/comments/1wnmvnq/built_a_tool_to_stop_losing_ideas_across_sticky/"
+      }
+     ]
+    },
+    {
+     "text": "I save 50-100 articles… Come back 3 months later… 30-40% are 404… My bookmarks are useless.",
+     "links": [
+      {
+       "label": "reddit",
+       "url": "https://www.reddit.com/r/SideProject/comments/1wnm7nq/how_are_you_handling_link_rot_and_dead_sources/"
+      }
+     ]
+    }
+   ],
+   "existing": "Notion/Coda、Zapier、Pocket/Raindrop、blockmade 类模块化工作区",
+   "defects": "套餐按全家桶计价；替换成本高；书签只存 URL；拼装本身成新税",
+   "solution": "用量知情精简工作区+一键永久归档；周报标出僵尸订阅",
+   "mvp": "Chrome 扩展：14 天 SaaS 域名活跃分钟周报；可选链接永久副本",
+   "difficulty": 3,
+   "potential": 4,
+   "tags": [
+    "支付/计费",
+    "Mac/桌面工具"
+   ]
+  },
+  {
+   "rank": 4,
+   "title": "信息流被 AI slop 淹没：要可浏览的互联网",
+   "problem": "社交时间线被低质 AI 生成帖与复制粘贴淹没；手动 mute 跟不上；缺少面向可读性的产品。",
+   "target_users": "重度刷社交网络的创作者与开发者",
+   "quotes": [
+    {
+     "text": "my social feeds have turned into an endless stream of low-effort AI-generated posts, spam accounts, and copy-paste threads. Muting accounts manually wasn't keeping up",
+     "links": [
+      {
+       "label": "reddit",
+       "url": "https://www.reddit.com/r/SideProject/comments/1wnp94c/i_got_tired_of_ai_slop_taking_over_my_feeds_so_i/"
+      }
+     ]
+    },
+    {
+     "text": "everyone is sick of reading AI prose… I'm not really aware of any idea or product aimed at making the internet usable, and making it somewhat resistant to the generated noise",
+     "links": [
+      {
+       "label": "hn",
+       "url": "https://news.ycombinator.com/item?id=49805876"
+      }
+     ]
+    },
+    {
+     "text": "And if they _have_ to degrade the models, then I wish they would fucking tell us",
+     "links": [
+      {
+       "label": "hn",
+       "url": "https://news.ycombinator.com/item?id=49790474"
+      }
+     ]
+    }
+   ],
+   "existing": "平台过滤、广告拦截、GPTZero 类、人工 mute、RSS",
+   "defects": "平台激励与 slop 同向；误伤高；缺跨站本地可解释时间线护栏",
+   "solution": "跨站 Slop 护栏扩展：疑似生成分+折叠；本地模型；周报少看条数",
+   "mvp": "Chrome：X+Reddit 启发式过滤，可选小模型",
+   "difficulty": 3,
+   "potential": 4,
+   "tags": [
+    "开发者工具",
+    "Mac/桌面工具"
+   ]
+  },
+  {
+   "rank": 5,
+   "title": "面试 AI 助手把通话音频送上别人的服务器——要本地可离线",
+   "problem": "主流面试辅助把麦克风/通话音频上传云端；用户要端侧转写与本地 LLM，无账户无遥测。",
+   "target_users": "隐私敏感求职者、职业教练、自托管本地 AI 用户",
+   "quotes": [
+    {
+     "text": "I kept seeing interview-assistant apps that send your call audio to someone else's server, so I built the opposite… Nothing leaves your machine, no account, no telemetry",
+     "links": [
+      {
+       "label": "reddit",
+       "url": "https://www.reddit.com/r/SomebodyMakeThis/comments/1wnew58/i_built_a_free_opensource_ai_interview_copilot/"
+      }
+     ]
+    },
+    {
+     "text": "I got frustrated by the way apps for small kids are designed. Signups, ads, videos, coins, rewards etc… I can't just hand the device to my kids… with little/no connectivity when we travel",
+     "links": [
+      {
+       "label": "hn",
+       "url": "https://news.ycombinator.com/item?id=49780816"
+      }
+     ]
+    }
+   ],
+   "existing": "闭源云端面试助手、Otter/Fireflies、Whisper.cpp/Ollama 散件",
+   "defects": "面试场景音频出域零容忍却少产品化；开源需编译缺安装包",
+   "solution": "本地优先面试副驾驶：系统音频+端侧 ASR+浮动提示；BYOK/Ollama",
+   "mvp": "Tauri：系统音频→whisper.cpp→本地 Ollama 追问提示",
+   "difficulty": 3,
+   "potential": 3,
+   "tags": [
+    "消费者",
+    "开发者工具",
+    "Agent/AI编码"
+   ]
+  }
+ ]
+}
