@@ -25,6 +25,7 @@
    "potential": 5,
    "tags": [
     "Agent/AI编码",
+    "安全/隐私",
     "开发者工具"
    ]
   },
@@ -163,7 +164,6 @@
    "difficulty": 2,
    "potential": 3,
    "tags": [
-    "安全",
     "运营/客服"
    ]
   }

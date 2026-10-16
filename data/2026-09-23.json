@@ -97,6 +97,7 @@
    "difficulty": 2,
    "potential": 4,
    "tags": [
+    "增长/转化",
     "开发者工具"
    ]
   },
@@ -150,8 +151,7 @@
    "difficulty": 3,
    "potential": 4,
    "tags": [
-    "支付/计费",
-    "Mac/桌面工具"
+    "支付/计费"
    ]
   },
   {
@@ -195,8 +195,7 @@
    "difficulty": 3,
    "potential": 4,
    "tags": [
-    "开发者工具",
-    "Mac/桌面工具"
+    "开发者工具"
    ]
   },
   {
@@ -231,7 +230,7 @@
    "difficulty": 3,
    "potential": 3,
    "tags": [
-    "消费者",
+    "个人/生活",
     "开发者工具",
     "Agent/AI编码"
    ]

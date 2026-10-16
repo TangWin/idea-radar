@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Idea Radar static site generator. Usage: python3 build.py"""
-import json, glob, os, re, html, sys
+import json, glob, os, re, html, sys, unicodedata
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = "/workspace/idea-mining-*"
@@ -20,17 +20,17 @@ MD_LABELS = [("problem", "问题"), ("target_users", "目标用户"), ("quotes",
              ("difficulty", "开发难度"), ("potential", "商业潜力")]
 LINK = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
 
-TAGS = [
-    ("Agent/AI编码", r"agent|claude|codex|cursor|copilot|llm|编程|编码|coding|mcp|prompt|token"),
-    ("开发者工具", r"开发者|cli|api|git|ssh|终端|terminal|部署|devops|vps|服务器|日志|代码|ide|自托管|self.?host"),
-    ("支付/计费", r"支付|计费|订阅|账单|发票|定价|退款|billing|stripe|invoice|费用"),
-    ("增长/转化", r"增长|转化|获客|冷邮|分发|seo|营销|落地页|distribution|marketing|首批|推广"),
-    ("Mac/桌面工具", r"mac|macos|桌面|菜单栏|touch id|windows|浏览器扩展|chrome"),
-    ("语言学习", r"语言学习|外语|英语|学习者|词汇|可懂输入|language|english"),
-    ("安全", r"安全|隐私|密码|凭证|creds|爬虫|恶意|security|加密|锁"),
-    ("电商", r"电商|shopify|商家|店铺|商品|目录|sku|amazon|采购|库存"),
-    ("运营/客服", r"客服|运营|询盘|收件箱|工单|催收|会计|行政|support|inbox|事务所"),
-    ("消费者", r"家庭|家人|照片|iphone|手机|键盘|木工|diy|求职|面试|约会|个人|生活"),
+TAGS = [  # English terms are word-bounded (\b) to avoid hits like "git" in "digital", "ide" in "idea"
+    ("Agent/AI编码", r"\b(?:agents?|agentic|claude|codex|cursor|copilot|llms?|mcp|prompts?|vibe.?cod\w*|coding)\b|编程|编码|提示词|token"),
+    ("开发者工具", r"\b(?:cli|apis?|git|github|ssh|terminal|devops|vps|ide|self.?host\w*|sdk|webhooks?)\b|开发者|终端|部署|服务器|日志|代码|自托管"),
+    ("支付/计费", r"\b(?:billing|stripe|invoices?|pricing|refunds?)\b|支付|计费|订阅|账单|发票|定价|退款|费用|收入"),
+    ("增长/转化", r"\b(?:seo|marketing|distribution|growth)\b|增长|转化|获客|冷邮|分发|营销|落地页|首批|推广|激活"),
+    ("Mac/桌面工具", r"\b(?:mac|macos|macbook|touch id|menu ?bar)\b|桌面|菜单栏|windows ?(?:应用|客户端|app)"),
+    ("语言学习", r"\b(?:language learning|duolingo|vocabulary)\b|语言学习|外语|英语|学习者|词汇|可懂输入"),
+    ("安全/隐私", r"\b(?:security|privacy|secrets?|creds|malware)\b|安全|隐私|密码|凭证|密钥|恶意|加密|爬虫"),
+    ("电商", r"\b(?:shopify|sku|amazon|etsy|e-?commerce)\b|电商|商家|店铺|商品|采购|库存|市集"),
+    ("运营/客服", r"\b(?:support|inbox|helpdesk|crm)\b|客服|运营|询盘|收件箱|工单|催收|催款|会计|行政|事务所"),
+    ("个人/生活", r"\b(?:iphone|diy|family)\b|家庭|家人|照片|手机|键盘|木工|求职|面试|约会|生活"),
 ]
 
 def first(d, keys):
@@ -149,7 +149,9 @@ def load_day(dirpath):
             elif f != "title": v = to_text(v)
             if v in (None, "", []): v = jm.get(f) or m.get(f)
             if v not in (None, "", []): idea[f] = v
-        if "title" in idea: idea["title"] = idea["title"].strip("[]")
+        if "title" in idea: idea["title"] = re.sub(r"^\s*\d+[.、]\s*", "", str(idea["title"]).strip().strip("[]")).strip()
+        try: idea["rank"] = int(idea["rank"])
+        except (TypeError, ValueError): idea["rank"] = i + 1
         if not idea.get("quotes") and j.get("sources"):
             idea["quotes"] = []  # sources only; keep as links
             idea["sources"] = j["sources"]
@@ -173,93 +175,171 @@ def short(s, n):
     return s if len(s) <= n else s[:n].rstrip() + "…"
 
 def pain(idea):
-    p = idea.get("problem")
-    if p: return short(re.split(r"(?<=[。！？])", p)[0], 70)
+    """One-line pain for the collapsed card. Returns (text, kind): kind 'p' = problem,
+    't' = from title after colon, 'q' = first user quote (verbatim). Never invents text."""
     t = idea.get("title", "")
-    return short(t.split("：", 1)[1], 70) if "：" in t else None
+    p = idea.get("problem")
+    if p:
+        first_s = re.split(r"(?<=[。！？!?])", p)[0].strip()
+        if first_s and first_s != t.strip():
+            return short(first_s, 70), "p"
+    m = re.split(r"[：:]", t, maxsplit=1)
+    if len(m) == 2 and m[1].strip():
+        return short(m[1].strip(), 70), "t"
+    qs = idea.get("quotes") or []
+    if qs and qs[0].get("text"):
+        return short(qs[0]["text"].strip().strip("「」“”\"'"), 80), "q"
+    return None, None
 
 def short_title(t):
-    t = re.split(r"[：:]", t, maxsplit=1)[0] if len(t) > 26 else t
-    return short(t, 30)
+    parts = re.split(r"[：:]", t, maxsplit=1)
+    if len(parts) == 2 and parts[0].strip() and len(t) > 22: t = parts[0]
+    return short(t.strip(), 32)
+
+def safe_url(u):
+    u = str(u or "").strip()
+    return u if re.match(r"^https?://", u, re.I) else None
 
 E = lambda s: html.escape(str(s), quote=True)
 
-CSS = """:root{color-scheme:light dark;--bg:#f6f7f9;--card:#fff;--fg:#1d2330;--mut:#6b7280;--line:#e5e7eb;--acc:#4f46e5;--chip:#eef2ff}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1117;--card:#181b24;--fg:#e6e8ee;--mut:#9aa1ae;--line:#2a2f3c;--acc:#8b8cf8;--chip:#252a3d}}
-*{box-sizing:border-box}body{margin:0;font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Segoe UI",sans-serif;background:var(--bg);color:var(--fg)}
+CSS = """:root{color-scheme:light dark;--bg:#f5f6f8;--card:#fff;--fg:#1b2130;--mut:#5b6474;--line:#e3e6eb;--acc:#4338ca;--acc2:#eef0ff;--box:#f7f8fa;
+--g:#15803d;--gb:#dcfce7;--y:#a16207;--yb:#fef3c7;--r:#b91c1c;--rb:#fee2e2;--focus:#2563eb}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1016;--card:#171a22;--fg:#e7e9ef;--mut:#a3aab8;--line:#2a2f3b;--acc:#a5b4fc;--acc2:#23284a;--box:#1e222c;
+--g:#86efac;--gb:#14321f;--y:#fcd34d;--yb:#3a2e0f;--r:#fca5a5;--rb:#3b1515;--focus:#93c5fd}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-padding-top:12px}
+body{margin:0;font:16px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Noto Sans SC","Microsoft YaHei","Segoe UI",sans-serif;background:var(--bg);color:var(--fg);overflow-wrap:anywhere}
 a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
-.wrap{max-width:860px;margin:0 auto;padding:20px 16px 60px}header h1{margin:0;font-size:24px}header p{margin:4px 0 16px;color:var(--mut)}
-.search{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);font-size:15px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 18px}.chip{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer}
-.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-.day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}.day h2{margin:0 0 6px;font-size:17px}
-.day ol{margin:0;padding-left:20px}.day li{margin:3px 0}.day li.hide{display:none}.day.hide{display:none}
-.tag{display:inline-block;font-size:11.5px;background:var(--chip);color:var(--acc);border-radius:6px;padding:1px 7px;margin:0 4px 0 0;white-space:nowrap}
-.b{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;margin-right:4px;border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+.skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:var(--card);padding:6px 10px;z-index:9}
+.wrap{max-width:860px;margin:0 auto;padding:20px 14px 64px}header h1{margin:0;font-size:24px;line-height:1.3}header p{margin:4px 0 14px;color:var(--mut);font-size:14px}
+.search{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 6px}.chip{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;min-height:32px}
+.chip[aria-pressed=true]{background:var(--acc);color:var(--card);border-color:var(--acc)}
+.stat{color:var(--mut);font-size:13px;margin:6px 0 14px;min-height:1.2em}
+.day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px}.day h2{margin:0 0 4px;font-size:17px}
+.day ol{list-style:none;margin:0;padding:0}.day li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:7px 0;border-top:1px dashed var(--line)}
+.day li:first-child{border-top:0}.day li>a{font-weight:600;flex:1 1 220px}.hide{display:none!important}
+.n{display:inline-flex;width:22px;height:22px;border-radius:7px;background:var(--acc2);color:var(--acc);font-size:12px;font-weight:700;align-items:center;justify-content:center;flex:none}
+.tags{display:inline-flex;flex-wrap:wrap;gap:4px}
+.tag{display:inline-block;font-size:12px;line-height:1.6;background:var(--acc2);color:var(--acc);border-radius:6px;padding:0 7px;white-space:nowrap}
+.sc{display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:1.6;border-radius:6px;padding:0 7px;white-space:nowrap}
+.sc i{display:inline-flex;gap:2px}.sc i b{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.25}.sc i b.on{opacity:1}
+.lv-g{background:var(--gb);color:var(--g)}.lv-y{background:var(--yb);color:var(--y)}.lv-r{background:var(--rb);color:var(--r)}
 .meta{color:var(--mut);font-size:13px}
-.nav{display:flex;justify-content:space-between;gap:8px;margin:10px 0 16px;font-size:14px}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0 14px;font-size:14px}
+.nav>*{flex:1}.nav .c{text-align:center}.nav .r{text-align:right}
+.tools{display:flex;gap:8px;margin-bottom:10px}.tools button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:4px 10px;cursor:pointer}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}
-.card>summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:38px 1fr;gap:4px 10px}.card>summary::-webkit-details-marker{display:none}
-.rank{grid-row:span 3;width:34px;height:34px;border-radius:10px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
-.t{font-weight:650;font-size:16px}.pain{color:var(--mut);font-size:14px}
-.card[open]>summary{border-bottom:1px solid var(--line)}.body{padding:12px 16px 16px}
-.full{font-size:13px;color:var(--mut);margin-bottom:8px}
-.sec{margin:10px 0}.sec h4{margin:0 0 3px;font-size:12.5px;letter-spacing:.04em;color:var(--mut);text-transform:uppercase}.sec p{margin:0}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:600px){.grid{grid-template-columns:1fr}}
-.box{background:var(--bg);border-radius:10px;padding:10px 12px}
-details.q{margin-top:12px}details.q>summary{cursor:pointer;color:var(--acc);font-size:14px}
-blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--acc);background:var(--bg);border-radius:0 8px 8px 0;font-size:14px}
-blockquote .src{display:block;font-size:12px;margin-top:3px}
-.empty{color:var(--mut);text-align:center;padding:30px}"""
+.card.hl{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc2)}
+.card>summary{list-style:none;cursor:pointer;padding:14px;display:grid;grid-template-columns:36px 1fr auto;gap:4px 10px;align-items:start}.card>summary::-webkit-details-marker{display:none}
+.rank{grid-row:span 3;width:34px;height:34px;border-radius:10px;background:var(--acc);color:var(--card);display:flex;align-items:center;justify-content:center;font-weight:700}
+.chev{color:var(--mut);transition:transform .15s;font-size:20px;line-height:1}.card[open] .chev{transform:rotate(90deg)}
+.t{font-weight:700;font-size:17px;line-height:1.45}.pain{color:var(--mut);font-size:14.5px;line-height:1.6;grid-column:2/4}.pain .k{font-size:12px;margin-right:4px}
+.row{grid-column:2/4;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.card[open]>summary{border-bottom:1px solid var(--line)}.body{padding:12px 14px 16px}
+.full{font-size:14px;color:var(--mut);margin-bottom:8px}
+.sec{margin:8px 0}.sec h3{margin:0 0 2px;font-size:13px;color:var(--mut);font-weight:600}.sec p{margin:0;font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}.card>summary{grid-template-columns:30px 1fr auto}.rank{width:28px;height:28px;border-radius:8px}}
+.box{background:var(--box);border-radius:10px;padding:9px 12px}
+.sec ul{margin:2px 0 0;padding-left:18px}.sec li{margin:1px 0}
+details.q{margin-top:12px}details.q>summary{cursor:pointer;color:var(--acc);font-size:14px;padding:4px 0}
+blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--acc);background:var(--box);border-radius:0 8px 8px 0;font-size:14px}
+blockquote .src{display:block;font-size:12.5px;margin-top:3px}
+.empty{color:var(--mut);text-align:center;padding:30px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}"""
 
 def page(title, body, rel=""):
-    return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{E(title)}</title><link rel="stylesheet" href="{rel}style.css"></head><body><div class="wrap">{body}</div></body></html>"""
+    return ('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n'
+            f'<meta name="color-scheme" content="light dark"><title>{E(title)}</title><link rel="stylesheet" href="{rel}style.css"></head>'
+            f'<body><a class="skip" href="#main">跳到正文</a><main class="wrap" id="main">{body}</main></body></html>')
+
+def meter(label, v, invert):
+    """Score pill with 5 dots. invert=True: higher is worse (difficulty)."""
+    if not isinstance(v, int) or not 1 <= v <= 5: return ""
+    good = 6 - v if invert else v
+    lv = "g" if good >= 4 else ("y" if good == 3 else "r")
+    dots = "".join('<b class="on"></b>' if k < v else "<b></b>" for k in range(5))
+    return f'<span class="sc lv-{lv}" title="{label} {v}/5"><span>{label}</span><i aria-hidden="true">{dots}</i><span>{v}/5</span></span>'
 
 def badges(i):
-    s = ""
-    if i.get("difficulty"): s += f'<span class="b">难度 {i["difficulty"]}/5</span>'
-    if i.get("potential"): s += f'<span class="b">潜力 {i["potential"]}/5</span>'
-    return s
+    return meter("难度", i.get("difficulty"), True) + meter("潜力", i.get("potential"), False)
+
+def tag_html(tags):
+    return '<span class="tags">' + "".join(f'<span class="tag">{E(t)}</span>' for t in tags) + "</span>"
+
+def split_items(v):
+    parts = [x.strip(" ；;、。") for x in re.split(r"[；;]|、", v) if x.strip(" ；;、。")]
+    return parts if 2 <= len(parts) <= 12 and all(len(x) <= 60 for x in parts) else None
+
+DAY_JS = """<script>(function(){const C=[...document.querySelectorAll('details.card')];
+function go(){const h=decodeURIComponent(location.hash.slice(1));const el=h&&document.getElementById(h);C.forEach(c=>c.classList.remove('hl'));
+if(el&&el.matches('details.card')){el.open=true;el.classList.add('hl');el.scrollIntoView({block:'start'})}}
+addEventListener('hashchange',go);go();
+document.getElementById('ex').onclick=()=>C.forEach(c=>c.open=true);document.getElementById('co').onclick=()=>C.forEach(c=>c.open=false);
+document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea')||e.metaKey||e.ctrlKey||e.altKey)return;
+const a=e.key==='ArrowLeft'?document.querySelector('a[rel=prev]'):e.key==='ArrowRight'?document.querySelector('a[rel=next]'):null;if(a)location.href=a.href})})()</script>"""
 
 def render_day(day, prev, nxt):
-    nav = '<div class="nav"><span>' + (f'<a href="{prev}.html">← {prev}</a>' if prev else "") + '</span><a href="../index.html">全部日期</a><span>' + (f'<a href="{nxt}.html">{nxt} →</a>' if nxt else "") + "</span></div>"
+    nav = ('<nav class="nav" aria-label="日期导航">' + (f'<a href="{prev}.html" rel="prev">← {prev}</a>' if prev else "<span></span>")
+           + '<a class="c" href="../index.html">全部日期</a>'
+           + (f'<a class="r" href="{nxt}.html" rel="next">{nxt} →</a>' if nxt else '<span class="r"></span>') + "</nav>")
     cards = []
     for i in day["ideas"]:
-        tags = "".join(f'<span class="tag">{E(t)}</span>' for t in i["tags"])
-        p = pain(i)
-        sec = lambda h, k: f'<div class="sec box"><h4>{h}</h4><p>{E(i[k])}</p></div>' if i.get(k) else ""
+        p, kind = pain(i)
+        def sec(h, k):
+            v = i.get(k)
+            if not v: return ""
+            items = split_items(v) if k in ("existing", "defects") else None
+            inner = ("<ul>" + "".join(f"<li>{E(x)}</li>" for x in items) + "</ul>") if items else f"<p>{E(v)}</p>"
+            return f'<div class="sec box"><h3>{h}</h3>{inner}</div>'
         body = ""
-        if i.get("title") and short_title(i["title"]) != i["title"]: body += f'<div class="full">{E(i["title"])}</div>'
-        if i.get("problem"): body += sec("问题", "problem")
-        body += sec("目标用户", "target_users")
-        g = sec("已有产品", "existing") + sec("缺陷", "defects")
+        title = i.get("title", "")
+        if title and short_title(title) != title: body += f'<div class="full">{E(title)}</div>'
+        if i.get("problem") and not (kind == "p" and i["problem"].strip() == (p or "")):
+            if i["problem"].strip() != title.strip(): body += sec("😣 痛点", "problem")
+        body += sec("👥 目标用户", "target_users")
+        g = sec("🏷 已有产品", "existing") + sec("🕳 缺口", "defects")
         if g: body += f'<div class="grid">{g}</div>'
-        g = sec("方案", "solution") + sec("MVP", "mvp")
+        g = sec("💡 方案", "solution") + sec("🚀 MVP", "mvp")
         if g: body += f'<div class="grid">{g}</div>'
         qs = ""
         for q in i.get("quotes") or []:
-            links = " · ".join(f'<a href="{E(l["url"])}" target="_blank" rel="noopener">{E(l["label"])} ↗</a>' for l in q["links"])
-            qs += f'<blockquote>{E(q["text"])}{f"<span class=src>{links}</span>" if links else ""}</blockquote>'
-        for u in i.get("sources") or []:
-            qs += f'<blockquote><a href="{E(u)}" target="_blank" rel="noopener">{E(short(u, 70))} ↗</a></blockquote>'
+            links = " · ".join(f'<a href="{E(u)}" target="_blank" rel="noopener noreferrer">{E(l.get("label") or "来源")} ↗</a>'
+                               for l in q.get("links") or [] if (u := safe_url(l.get("url"))))
+            qs += f'<blockquote>{E(q["text"])}' + (f'<span class="src">{links}</span>' if links else "") + "</blockquote>"
+        srcs = [u for u in (safe_url(x if isinstance(x, str) else (x or {}).get("url")) for x in i.get("sources") or []) if u]
+        for u in srcs:
+            qs += f'<blockquote><a href="{E(u)}" target="_blank" rel="noopener noreferrer">{E(short(u, 70))} ↗</a></blockquote>'
         if qs:
-            n = len(i.get("quotes") or i.get("sources") or [])
-            label = "Original quotes" if i.get("quotes") else "Sources"
-            body += f'<details class="q"><summary>{label} ({n})</summary>{qs}</details>'
-        cards.append(f'''<details class="card" id="i{i["rank"]}"><summary><div class="rank">{i["rank"]}</div>
-<div class="t">{E(short_title(i.get("title", "")))}</div>{f'<div class="pain">{E(p)}</div>' if p else '<div></div>'}<div>{badges(i)}{tags}</div></summary>
-<div class="body">{body}</div></details>''')
-    head = f'<header><h1>{day["date"]} · Top {len(day["ideas"])}</h1>' + (f'<p>{E(day["sample"])}</p>' if day["sample"] else "<p></p>") + "</header>"
-    return page(f'{day["date"]} · Idea Radar', head + nav + "".join(cards) + nav, "../")
+            n = len(i.get("quotes") or []) or len(srcs)
+            label = "💬 用户原话" if i.get("quotes") else "🔗 来源"
+            body += f'<details class="q"><summary>{label}（{n}）· 展开</summary>{qs}</details>'
+        pk = '<span class="k" title="无痛点字段，显示首条用户原话">💬</span>' if kind == "q" else ""
+        pain_html = f'<span class="pain">{pk}{E(p)}</span>' if p else ""
+        r = i["rank"]
+        cards.append(f'<details class="card" id="i{r}"><summary><span class="rank" aria-label="第{r}名">{r}</span>'
+                     f'<span class="t">{E(short_title(title) or "（无标题）")}</span><span class="chev" aria-hidden="true">›</span>'
+                     f'{pain_html}<span class="row">{badges(i)}{tag_html(i["tags"])}</span></summary>\n'
+                     f'<div class="body">{body or "<p class=meta>源数据没有更多字段</p>"}<p class="meta"><a href="#i{r}">🔗 本条链接</a></p></div></details>\n')
+    head = f'<header><h1>{day["date"]} · Top {len(day["ideas"])}</h1>' + (f'<p>{E(day["sample"])}</p>' if day["sample"] else "") + "</header>"
+    tools = '<div class="tools"><button type="button" id="ex">全部展开</button><button type="button" id="co">全部收起</button></div>'
+    return page(f'{day["date"]} · Idea Radar', head + nav + tools + "".join(cards) + nav + DAY_JS, "../")
 
-JS = r"""const D=window.IDEAS;let tag=null;const q=document.getElementById('q');
-function run(){const s=q.value.trim().toLowerCase();let any=0;
+JS = r"""(function(){const D=window.IDEAS;let tag=null;const q=document.getElementById('q'),st=document.getElementById('stat');
+const N=s=>s.normalize('NFKC').toLowerCase();
+function run(push){const terms=N(q.value).trim().split(/\s+/).filter(Boolean);let any=0;
 document.querySelectorAll('.day').forEach(d=>{let n=0;d.querySelectorAll('li').forEach(li=>{const it=D[li.dataset.k];
-const ok=(!s||it.blob.includes(s))&&(!tag||it.tags.includes(tag));li.classList.toggle('hide',!ok);if(ok)n++});d.classList.toggle('hide',!n);any+=n});
-document.getElementById('empty').style.display=any?'none':'block'}
-q.addEventListener('input',run);document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{tag=tag===c.dataset.t?null:c.dataset.t;
-document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.dataset.t===tag));run()});"""
+const ok=terms.every(t=>it.blob.includes(t))&&(!tag||it.tags.includes(tag));li.classList.toggle('hide',!ok);if(ok)n++});d.classList.toggle('hide',!n);any+=n});
+document.getElementById('empty').classList.toggle('hide',!!any);
+st.textContent=(terms.length||tag)?`匹配 ${any} 个想法`:'';
+if(push){const u=new URLSearchParams();if(q.value.trim())u.set('q',q.value.trim());if(tag)u.set('tag',tag);
+history.replaceState(null,'',u.toString()?'?'+u:location.pathname)}}
+function setTag(t){tag=t;document.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.t===tag)))}
+q.addEventListener('input',()=>run(1));
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{setTag(tag===c.dataset.t?null:c.dataset.t);run(1)});
+const P=new URLSearchParams(location.search);if(P.get('q'))q.value=P.get('q');if(P.get('tag'))setTag(P.get('tag'));run(0);
+document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus()}else if(e.key==='Escape'&&document.activeElement===q){q.value='';run(1)}})})()"""
 
 def render_index(days):
     allidx, rows, counts = {}, [], {}
@@ -267,21 +347,33 @@ def render_index(days):
         lis = ""
         for i in d["ideas"]:
             k = f'{d["date"]}-{i["rank"]}'
-            blob = " ".join([i.get("title", ""), i.get("problem", ""), i.get("target_users", ""), i.get("existing", ""), i.get("solution", ""), i.get("mvp", "")]
-                            + [q["text"] for q in i.get("quotes") or []]).lower()
+            parts = [d["date"], i.get("title", ""), i.get("problem", ""), i.get("target_users", ""), i.get("existing", ""), i.get("defects", ""),
+                     i.get("solution", ""), i.get("mvp", ""), " ".join(i["tags"])] + [q["text"] for q in i.get("quotes") or []]
+            blob = unicodedata.normalize("NFKC", " ".join(map(str, parts))).lower()
             allidx[k] = {"tags": i["tags"], "blob": blob}
             for t in i["tags"]: counts[t] = counts.get(t, 0) + 1
-            tags = "".join(f'<span class="tag">{E(t)}</span>' for t in i["tags"])
-            lis += f'<li data-k="{k}"><a href="days/{d["date"]}.html#i{i["rank"]}">{E(short_title(i.get("title", "")))}</a> {badges(i)}{tags}</li>'
-        rows.append(f'<section class="day"><h2><a href="days/{d["date"]}.html">{d["date"]}</a></h2>'
-                    + (f'<div class="meta">{E(short(d["sample"], 90))}</div>' if d["sample"] else "") + f"<ol>{lis}</ol></section>")
-    chips = "".join(f'<button class="chip" data-t="{E(t)}">{E(t)} · {c}</button>' for t, c in sorted(counts.items(), key=lambda x: -x[1]))
+            p, _ = pain(i)
+            tip = f' title="{E(p)}"' if p else ""
+            lis += (f'<li data-k="{E(k)}"><span class="n">{i["rank"]}</span><a href="days/{d["date"]}.html#i{i["rank"]}"{tip}>{E(short_title(i.get("title", "")))}</a>'
+                    f'{badges(i)}{tag_html(i["tags"])}</li>\n')
+        rows.append(f'<section class="day" aria-labelledby="d{d["date"]}"><h2 id="d{d["date"]}"><a href="days/{d["date"]}.html">{d["date"]}</a></h2>'
+                    + (f'<div class="meta">{E(short(d["sample"], 90))}</div>' if d["sample"] else "") + f"<ol>{lis}</ol></section>\n")
+    chips = "".join(f'<button type="button" class="chip" aria-pressed="false" data-t="{E(t)}">{E(t)} · {c}</button>'
+                    for t, c in sorted(counts.items(), key=lambda x: (-x[1], x[0])))
     n = sum(len(d["ideas"]) for d in days)
-    body = (f'<header><h1>Idea Radar</h1><p>每日产品 Idea Top 5 · {len(days)} 天 · {n} 个想法</p></header>'
-            '<input id="q" class="search" type="search" placeholder="搜索全部想法、用户原话…">'
-            f'<div class="chips">{chips}</div>' + "".join(rows) + '<div id="empty" class="empty" style="display:none">没有匹配的想法</div>'
-            f'<script>window.IDEAS={json.dumps(allidx, ensure_ascii=False)}</script><script>{JS}</script>')
+    data = json.dumps(allidx, ensure_ascii=False).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    body = (f'<header><h1>📡 Idea Radar</h1><p>每日产品 Idea Top 5 · {len(days)} 天 · {n} 个想法 · 难度点越少越容易，潜力点越多越好</p></header>'
+            '<label for="q" class="skip">搜索</label><input id="q" class="search" type="search" placeholder="搜索标题、痛点、用户、竞品、原话…（空格=同时包含）" autocomplete="off">'
+            f'<div class="chips" role="group" aria-label="按标签筛选">{chips}</div><div id="stat" class="stat" aria-live="polite"></div>' + "".join(rows)
+            + '<div id="empty" class="empty hide">没有匹配的想法</div>'
+            f'<script>window.IDEAS={data}</script><script>{JS}</script>')
     return page("Idea Radar · 每日产品 Idea Top 5", body)
+
+def failed_dates(failed, f):
+    """Keep the last good page for a day whose source failed to parse this run."""
+    b = os.path.basename(f).rsplit(".", 1)[0]
+    return any(dp.endswith(b) for dp, _ in failed)
+
 
 def main():
     os.makedirs(f"{ROOT}/data", exist_ok=True); os.makedirs(f"{ROOT}/days", exist_ok=True)
@@ -292,7 +384,7 @@ def main():
             d = load_day(dp)
             if not d["ideas"]: raise ValueError("no ideas parsed")
             days.append(d)
-            json.dump(d, open(f'{ROOT}/data/{d["date"]}.json', "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+            with open(f'{ROOT}/data/{d["date"]}.json', "w", encoding="utf-8") as fh: json.dump(d, fh, ensure_ascii=False, indent=1)
         except Exception as e:
             failed.append((dp, str(e))); print(f"[fail] {dp}: {e}", file=sys.stderr)
     days.sort(key=lambda d: d["date"])
@@ -302,7 +394,11 @@ def main():
         open(f'{ROOT}/days/{d["date"]}.html', "w", encoding="utf-8").write(render_day(d, prev, nxt))
     days.reverse()
     open(f"{ROOT}/index.html", "w", encoding="utf-8").write(render_index(days))
-    open(f"{ROOT}/style.css", "w").write(CSS)
+    open(f"{ROOT}/style.css", "w", encoding="utf-8").write(CSS)
+    keep = {d["date"] for d in days}
+    for sub, ext in (("data", "json"), ("days", "html")):  # drop pages whose source dir disappeared
+        for f in glob.glob(f"{ROOT}/{sub}/*.{ext}"):
+            if os.path.basename(f).rsplit(".", 1)[0] not in keep and not failed_dates(failed, f): os.remove(f)
     open(f"{ROOT}/.nojekyll", "w").write("")
     print(f"built {len(days)} days, {sum(len(d['ideas']) for d in days)} ideas; failed: {len(failed)}")
     for f, e in failed: print("  failed:", f, e)
