@@ -1,0 +1,279 @@
+{
+ "date": "2026-10-20",
+ "sample": "样本：主样本 147 条（HN 42 / Lobsters 11 / Reddit 48 / Indie Hackers 20 / Product Hunt 26），补充 Reddit 深翻页抱怨帖 129 条 + HN 句式评论与 Ask HN 220 条（筛后）；并抓取多个 Reddit/HN 线程评论。未使用任何 X 付费 API。",
+ "ideas": [
+  {
+   "rank": 1,
+   "title": "AI 应用免费试用防薅：按设备和成本给试用设上限，别让一个人换 9 个 Apple ID 白嫖",
+   "problem": "r/SaaS 帖 140 条评论：一款 AI 生图 App 的生图账单 9 天涨了两倍，安装量和收入都没变。查下来是一台设备从 10 月 6 日起生成了 14178 张图，比其他所有用户加起来还多；它用 9 个 Apple ID 开了 9 次 3 天试用，每次转正前取消，一分钱没付，花掉约 1900 美元。试用限额按账号算而不是按设备；App Store 页面写着「无限生成」，又不敢硬封顶，怕被审核拒和差评。还有人说付费用户也会钻空子，几天生成 1400 张图。",
+   "target_users": "提供免费试用或「无限」套餐、背后按次付模型费用的 AI 应用开发者，尤其是 iOS 上的生图、视频、语音类独立开发者和小团队。",
+   "quotes": [
+    {
+     "text": "a single device made 14,178 generations since oct 6, more than all our other users combined. it started 9 free trials from 9 different apple IDs, cancelled each one before it converted, never paid a cent.",
+     "links": [
+      {
+       "label": "r/SaaS 原帖",
+       "url": "https://www.reddit.com/r/SaaS/comments/1x99za5/"
+      }
+     ]
+    },
+    {
+     "text": "our trial limit was checked per account, not per device. so every new apple id = a fresh 3 day trial with unlimited generations.",
+     "links": [
+      {
+       "label": "r/SaaS 原帖",
+       "url": "https://www.reddit.com/r/SaaS/comments/1x99za5/"
+      }
+     ]
+    },
+    {
+     "text": "Throttle instead of capping. ... Above a ceiling set well over real usage, move them to a slow queue instead of refusing. It stays \"unlimited\", it just isn't instant.",
+     "links": [
+      {
+       "label": "r/SaaS 评论",
+       "url": "https://www.reddit.com/r/SaaS/comments/1x99za5/"
+      }
+     ]
+    },
+    {
+     "text": "I had a user on a paid account that ran up a huge bill. ... They generated 1400 images in a few days",
+     "links": [
+      {
+       "label": "r/SaaS 评论",
+       "url": "https://www.reddit.com/r/SaaS/comments/1x99za5/"
+      }
+     ]
+    }
+   ],
+   "existing": "Apple DeviceCheck / App Attest；RevenueCat 等订阅管理；Stripe Radar；自己写速率限制；Fingerprint 等设备指纹服务。",
+   "defects": "DeviceCheck 只给每台设备 2 个比特，怎么用要自己设计；订阅工具管「谁能试用」，不管「试用期花了多少模型钱」；设备指纹服务偏网页反欺诈，不懂按生成次数计成本；自己写限流很容易像原帖一样漏掉，还要兼顾一家人共用一台 iPad 的正常情况。",
+   "solution": "一个接在模型调用前面的 SDK 加后台：每次生成都记成本，按设备、支付方式和账号三层合并识别同一个人；试用和「无限」套餐用成本预算而不是次数，超过远高于正常用户的阈值后转慢队列而不是直接拒绝；已用过试用的设备自动展示无试用的订阅选项；后台每天列出成本最高的设备和异常账号。",
+   "mvp": "先做 iOS（DeviceCheck + StoreKit 2）和 OpenAI、Replicate、fal 三家的成本计量；一行代码包住生成调用；按月活或节省的成本分成收费。",
+   "difficulty": 3,
+   "potential": 4,
+   "tags": [
+    "支付/计费",
+    "开发者工具"
+   ]
+  },
+  {
+   "rank": 2,
+   "title": "AI 改动行为差异沙箱：合并前对比新旧版本多了哪些联网、写文件、起进程",
+   "problem": "Ask HN「How to deal with shipping AI-written code you don't understand?」半天内 189 分、307 条评论。很多工程师承认自己已经说不清 AI 写的系统怎么运作。有评论指出，测试只验证你想到的行为，拦不住 AI 顺手加的意外行为，比如偷偷联网、服务器连不上时把数据传到公开仓库、磁盘满了就删用户文件夹；人写的代码这种东西一眼能看出，AI 生成的一大坨里就藏得住。",
+   "target_users": "大量用 Claude Code、Codex、Cursor 写代码并直接合并的工程团队和独立开发者，尤其是处理客户数据、支付、桌面客户端的团队。",
+   "quotes": [
+    {
+     "text": "tests usually can't intercept all possible unintended behavior that an LLM might have added. In all likelihood, most test suites don't intercept any unintented behavior (such as unintended internet connections).",
+     "links": [
+      {
+       "label": "Hacker News 评论",
+       "url": "https://news.ycombinator.com/item?id=50157437"
+      }
+     ]
+    },
+    {
+     "text": "Or maybe it found that if your server is unreachable, it can upload the client's data to a public Github repo; or that if there's no space left on the device, it can delete some of the user's folders, easy!",
+     "links": [
+      {
+       "label": "Hacker News 评论",
+       "url": "https://news.ycombinator.com/item?id=50157437"
+      }
+     ]
+    },
+    {
+     "text": "Now nobody understands how things work, and it cannot be understood in principle because the system is a mountain of slop created by some alien intelligence.",
+     "links": [
+      {
+       "label": "Hacker News 评论",
+       "url": "https://news.ycombinator.com/item?id=50157068"
+      }
+     ]
+    },
+    {
+     "text": "I'm writing code these days and it all feels like a black box.",
+     "links": [
+      {
+       "label": "Ask HN 原帖（引用 Meta 工程师）",
+       "url": "https://news.ycombinator.com/item?id=50151036"
+      }
+     ]
+    }
+   ],
+   "existing": "单元测试和 CI；CodeRabbit 等 AI 审查机器人；Semgrep、CodeQL 静态扫描；Socket 等依赖供应链扫描；StepSecurity Harden-Runner 监控 CI 里的出站连接。",
+   "defects": "测试和静态扫描只查已知规则，不会告诉你「这次改动后程序新连了哪个域名、新写了哪个目录」；Harden-Runner 只看 CI 运行器整体，不按 PR 对比前后差异；AI 审查机器人是在 diff 上再读一遍，同样会漏。",
+   "solution": "一个 GitHub App 或 CLI：在沙箱里分别跑主分支和 PR 分支的测试与冒烟脚本，用系统调用跟踪记录网络连接、文件读写路径、子进程、环境变量读取，生成「行为差异」报告挂在 PR 上；新增的出站域名、删除操作和对用户目录的写入标红，必须有人勾选确认才能合并。",
+   "mvp": "先支持 Linux 容器里的 Python 和 Node 项目；用 strace 或 eBPF 采集；报告只列新增行为；开源 CLI 免费，团队版按仓库收费。",
+   "difficulty": 4,
+   "potential": 3,
+   "tags": [
+    "开发者工具",
+    "Agent/AI编码",
+    "支付/计费"
+   ]
+  },
+  {
+   "rank": 3,
+   "title": "Mac 清理先解释再删：每个大文件夹说清是谁留下的、删了会怎样、能撤销",
+   "problem": "r/MacOS「Looking for an alternative for CleanMyMac」两天 343 条评论。一派推荐 Mole、AppCleaner、OnyX、命令行；一派说清理软件是安慰剂。但有长期用户指出，Adobe、Cinema 4D 这类专业软件卸载后会留下支持文件、后台服务和大缓存，系统不会帮你识别；用 Mole 的人被提醒要小心它误删重要东西。大家要的不是「一键清理」，而是知道每样东西是什么、敢不敢删。",
+   "target_users": "刚换 Mac 的新用户；装过 Adobe、剪辑、3D、开发工具，硬盘只有 256GB 或 512GB 的 Mac 用户；不敢用命令行的人。",
+   "quotes": [
+    {
+     "text": "MacOS doesn't always remove everything an application installs, and it doesn't necessarily identify abandoned support files, background services, or accumulated application data.",
+     "links": [
+      {
+       "label": "r/MacOS 评论",
+       "url": "https://www.reddit.com/r/MacOS/comments/1x8w4p3/"
+      }
+     ]
+    },
+    {
+     "text": "Yeah I used mole but was cautioned to make sure it isn't deleting vital stuff",
+     "links": [
+      {
+       "label": "r/MacOS 评论",
+       "url": "https://www.reddit.com/r/MacOS/comments/1x8w4p3/"
+      }
+     ]
+    },
+    {
+     "text": "Not to mention the other wealth of apps that might leave large cache files hidden somewhere on your boot drive if you don't know to change the defaults.",
+     "links": [
+      {
+       "label": "r/MacOS 评论",
+       "url": "https://www.reddit.com/r/MacOS/comments/1x8w4p3/"
+      }
+     ]
+    },
+    {
+     "text": "I've been using Onyx for over ten years. ... I inexplicably trust it to not fuck things up.",
+     "links": [
+      {
+       "label": "r/MacOS 评论",
+       "url": "https://www.reddit.com/r/MacOS/comments/1x8w4p3/"
+      }
+     ]
+    }
+   ],
+   "existing": "CleanMyMac（订阅）；Mole（命令行免费，图形版买断）；AppCleaner；OnyX；DaisyDisk、GrandPerspective 等磁盘可视化；系统设置里的储存空间管理。",
+   "defects": "CleanMyMac 订阅贵、推销多，删什么不透明；Mole 偏命令行，新手不放心；AppCleaner 只管卸载 App；磁盘可视化只告诉你哪里大，不告诉你是谁留下的、能不能删、删了会不会出问题；几乎都没有「删错了一键恢复」。",
+   "solution": "一个只读起步的 Mac App：扫描后按「属于哪个 App、是否已卸载、上次使用时间、删了会怎样」给每个大项写一句人话解释，并分成可放心删、谨慎、别动三档；删除先移到带 30 天保留的隔离区，可一键撤销；对已卸载软件残留的后台服务和登录项单独列出。",
+   "mvp": "内置 200 个常见 App 的残留路径和解释库；扫描与解释免费，清理与隔离区一次性买断 15 到 25 美元，不做订阅。",
+   "difficulty": 2,
+   "potential": 3,
+   "tags": [
+    "Mac/桌面工具",
+    "支付/计费"
+   ]
+  },
+  {
+   "rank": 4,
+   "title": "求职公开联系方式防骚扰：一次性转发邮箱，先筛掉假招聘、带毒笔试和推销",
+   "problem": "HN「Tell HN: Massive amount of spam from Who Wants to be hired」：发帖人以前在 HN 求职帖里找到过机会，最近两三次发帖后邮箱被垃圾信淹没，有人推销新做的 AI 招聘网站，还有明显假的招聘 Gmail 地址。评论补充：所谓保密职位的假招聘、内含恶意软件的编程笔试、请你替人出席会议的骗局都有；Reddit 求职帖也一样。有人改贴一次性邮箱的图片，垃圾信没了，但正常来信也没了。",
+   "target_users": "在 HN「Who wants to be hired」、Reddit 求职帖、个人网站上公开联系方式的开发者、设计师和自由职业者。",
+   "quotes": [
+    {
+     "text": "the last 2-3 times I've posted in them, my inbox has just been flooded with spam.",
+     "links": [
+      {
+       "label": "Tell HN 原帖",
+       "url": "https://news.ycombinator.com/item?id=50142714"
+      }
+     ]
+    },
+    {
+     "text": "the jobs that ask you to complete a coding challenge (with malware inside), the people asking me to be their face to attend meetings while they develop the work, etc. It is insane.",
+     "links": [
+      {
+       "label": "Hacker News 评论",
+       "url": "https://news.ycombinator.com/item?id=50153032"
+      }
+     ]
+    },
+    {
+     "text": "I've switched to linking to an image of a new disposable email address. Zero spam since then. (Actually, zero non-test messages total since then, but that's fine too.)",
+     "links": [
+      {
+       "label": "Hacker News 评论",
+       "url": "https://news.ycombinator.com/item?id=50143491"
+      }
+     ]
+    },
+    {
+     "text": "Sadly I think it's any job board that can be easily scraped these days",
+     "links": [
+      {
+       "label": "Hacker News 评论",
+       "url": "https://news.ycombinator.com/item?id=50143179"
+      }
+     ]
+    }
+   ],
+   "existing": "SimpleLogin、Addy、iCloud 隐藏邮箱等别名转发；Gmail 过滤器；一次性邮箱；把邮箱做成图片防爬。",
+   "defects": "别名服务只能整体开关，不会判断来信是不是真招聘；一次性邮箱会把正常来信一起挡掉；没有人检查笔试附件和仓库里有没有恶意代码，也不核对发信人公司域名和招聘页是否对得上。",
+   "solution": "一个求职专用的转发地址：每次发帖生成一个带期限的地址，来信先过一道检查：发件域名和公司官网、领英是否一致，是否群发模板，是否推销产品；附带的笔试仓库或附件先在沙箱里扫描；通过的才转到真实邮箱，其余放进每周摘要，到期地址自动作废。",
+   "mvp": "基于现有邮件转发服务做规则加模型分类；先支持 Gmail 转发；笔试仓库只做静态扫描和可疑脚本提示；免费 1 个地址，付费 5 美元一个月。",
+   "difficulty": 3,
+   "potential": 2,
+   "tags": [
+    "个人/生活",
+    "Agent/AI编码",
+    "开发者工具"
+   ]
+  },
+  {
+   "rank": 5,
+   "title": "大公司客服找真人：按公司整理有效升级路径，一键生成高管投诉信",
+   "problem": "Ask HN「Any secrets for reaching a human at large companies?」：发帖人为了给保修过期的 HPE 磁带机下载推荐固件，三周里在各部门之间被踢来踢去，联系页没有联系方式，在线聊天和邮件都没人回，经理说回电却没打，两次排队 4 小时后被挂断。评论里最有效的办法是直接给 CEO 发邮件，因为高管邮箱有专人处理，常能换来专属对接人；但大家又卡在怎么找到高管邮箱。",
+   "target_users": "被大公司客服流程困住的个人用户和小企业 IT，尤其是保修、退款、账号封禁、企业硬件支持这类高价值问题。",
+   "quotes": [
+    {
+     "text": "For the past 2 weeks, I have been failing to reach a human with competency and agency at HPE.",
+     "links": [
+      {
+       "label": "Ask HN 原帖",
+       "url": "https://news.ycombinator.com/item?id=50092215"
+      }
+     ]
+    },
+    {
+     "text": "waiting on hold for 4 hours just to have my call disconnected, twice",
+     "links": [
+      {
+       "label": "Ask HN 原帖",
+       "url": "https://news.ycombinator.com/item?id=50092215"
+      }
+     ]
+    },
+    {
+     "text": "Someone I know tends to email the CEO in situations like this, with a surprising level of success. They usually have a team of people managing their inbox.",
+     "links": [
+      {
+       "label": "Hacker News 评论",
+       "url": "https://news.ycombinator.com/item?id=50097456"
+      }
+     ]
+    },
+    {
+     "text": "And how do you find the e-mail address of that CEO?",
+     "links": [
+      {
+       "label": "Hacker News 评论",
+       "url": "https://news.ycombinator.com/item?id=50101974"
+      }
+     ]
+    }
+   ],
+   "existing": "GetHuman 等客服电话目录；Elliott Advocacy 的高管联系人库；各国消费者投诉平台；社交媒体公开投诉。",
+   "defects": "电话目录只给总机和按键路径，不区分哪条路对哪类问题有效；高管联系人库分散、常过期；没有人帮你把三周的来回整理成一封有时间线、有诉求的升级信，也不追踪发出后有没有回音。",
+   "solution": "一个网页工具：选公司和问题类型，给出用户投票验证过的升级路径（专门部门、高管邮箱格式、监管投诉入口）；把你贴进来的聊天记录、工单号、通话时间整理成一封简短的升级信；发出后提醒跟进，结果回流到路径库里更新成功率。",
+   "mvp": "先覆盖 100 家常见科技、电信、航空公司；路径库众包加人工校对；单次升级信 5 美元或月费 5 美元。",
+   "difficulty": 2,
+   "potential": 2,
+   "tags": [
+    "运营/客服",
+    "支付/计费",
+    "安全/隐私"
+   ]
+  }
+ ]
+}
